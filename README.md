@@ -25,14 +25,13 @@ The complete parts list includes:
 1. ESP32 C3 Wroom O2
 2. MQ-135 GAS sensor (Specifically the one with the digital out pin)
 3. BMP280 (We love Bosh)
-4. 2x 20k Ohm resistors
-5. 4x 10K Ohm resistors
+4. 1x 20k Ohm resistors
+5. 3x 10K Ohm resistors
 6. 1x 5.1KOhm resistor
-7. USB-C Breakout module (6pin)
+7. Sparkfun USB-C Breakout module (6-pin)
 8. 2x 6mm Push buttons
 9. LD1117
-10. 4 Channel Logic Converter
-
+    
 The total parts list comes to about 15 euros, which is fairly cheap.
 Right now, only the hardware side has been really figured out; the software side is still in early development.
 
@@ -40,6 +39,8 @@ Right now, only the hardware side has been really figured out; the software side
 <img width="1439" height="755" alt="Screenshot_2026-07-11-18-49-11-26_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/ebd81730-bcbe-475c-abc3-d042cdbfcf6e" />
 Ouch.
 However, I am already working on a rework of the actual website.
+
+The final PCB design has already been made available for anyone who wants to take a look and/or assemble the PCB. However, the final software has yet to be finished.
 
 
 
