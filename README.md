@@ -1,4 +1,4 @@
-# One-board-Air-quality-sensor
+# BreatheEasy - One-board-Air-quality-sensor
 A simple, cheap-to-build PCB that actively monitors air quality and prevents invisible hazards. It makes protection from environmental hazards accessible to everyone.
 
 The brains of the project are the ESP32 C3-Wroom-02
@@ -25,12 +25,21 @@ The complete parts list includes:
 1. ESP32 C3 Wroom O2
 2. MQ-135 GAS sensor (Specifically the one with the digital out pin)
 3. BMP280 (We love Bosh)
-4. 2x 10K Ohm resistors
-5. 1x 5.1KOhm resistor
-6. USB-C Breakout module (6pin)
-7. 2x 6mm Push buttons
-8. LD1117
-9. 4 Channel Logic converter
+4. 2x 20k Ohm resistors
+5. 4x 10K Ohm resistors
+6. 1x 5.1KOhm resistor
+7. USB-C Breakout module (6pin)
+8. 2x 6mm Push buttons
+9. LD1117
+10. 4 Channel Logic Converter
 
 The total parts list comes to about 15 euros, which is fairly cheap.
-Right now, only the hardware side has been really figured out, the software side has yet to be worked on.
+Right now, only the hardware side has been really figured out; the software side is still in early development.
+
+<h1>What DOES this early website look like right now?</h1>
+<img width="1439" height="755" alt="Screenshot_2026-07-11-18-49-11-26_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/ebd81730-bcbe-475c-abc3-d042cdbfcf6e" />
+Ouch.
+However, I am already working on a rework of the actual website.
+
+
+
