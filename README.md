@@ -40,7 +40,31 @@ Right now, only the hardware side has been really figured out; the software side
 Ouch.
 However, I am already working on a rework of the actual website.
 
-The final PCB design has already been made available for anyone who wants to take a look and/or assemble the PCB. However, the final software has yet to be finished.
+The final PCB design has already been made available for anyone who wants to take a look and/or assemble the PCB.
+
+<h1> The first iteration of the website has been released!</h1>
+
+<img width="833" height="819" alt="image" src="https://github.com/user-attachments/assets/0e7d0a35-a07e-4678-8a0b-1d6fbf9a4945" />
+
+The website includes:
+1. The current humidity
+2. The current temperature
+3. The current alcohol levels (this prototype uses an MQ-3 instead of an MQ-135)
+4. The latest event (High temperature, Low temperature, high alcohol, etc.)
+5. Uptime and time since last update
+6. An alarm played through the browser.
+
+<h2> How does it work? </h2>
+
+The ESP32 reads the MQ-135 and DHT11 values through a voltage divider, since the sensor outputs up to 5v but the ESP32 can handle only 3.3V, and sends them in a JSON string to the browser you're viewing the website from.
+
+The neat part is that, since the browser does all the heavy lifting, the ESP32 doesn't use much computing power.
+
+I'm hoping by the end of the week I'll have gotten all the parts to build the final device. 
+
+
+
+
 
 
 
