@@ -35,10 +35,6 @@ The complete parts list includes:
 The total parts list comes to about 15 euros, which is fairly cheap.
 Right now, only the hardware side has been really figured out; the software side is still in early development.
 
-<h1>What DOES this early website look like right now?</h1>
-<img width="1439" height="755" alt="Screenshot_2026-07-11-18-49-11-26_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/ebd81730-bcbe-475c-abc3-d042cdbfcf6e" />
-Ouch.
-However, I am already working on a rework of the actual website.
 
 The final PCB design has already been made available for anyone who wants to take a look and/or assemble the PCB.
 
