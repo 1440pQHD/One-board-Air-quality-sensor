@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+
+    </head>
+    <body>
+        <div class="container">
+            <h1>Humidity</h1>
+            <div class="subtitle">Live sensor data</div>
+            <div class="status" id="tenp-status"> Checking Status...</div>
+            <div class="card" style="background: linear-gradient(135deg, #4BB8FA, #2c5ead); cursor: default; transform: none; box-shadow: none;">
+                <div class="label" style="color: rgba(255, 255, 255, 0.8); text-align: center;">Current Reading</div>
+                <div class="big-value" id="humidity">-- %</div>
+            </div>
+
+            <a href="/" style="text-decoration: none;">
+                <div class="back-btn"> Dashboard </div>
+            </a>
+        </div>
+        <script>
+            async function updatedMetric() {
+                try{
+                    const response = await fetch('/data');
+                    const data = await response.json();
+                    document.getElementById('humidity').innerHTML = data.humidity + "%";
+
+                } catch (err) { console.error(err); }
+                
+            }
+            updatedMetric();
+            setInterval(updatedMetric, 1000);
+        </script>
+    </body>
+</html>

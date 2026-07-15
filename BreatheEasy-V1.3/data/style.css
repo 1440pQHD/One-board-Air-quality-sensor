@@ -1,0 +1,171 @@
+    body {
+      margin: 0;
+      background: #2c5ead;
+      font-family: 'Audiowide', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(-45deg, #112E81, #2c5ead, #4BB8FA, #112E81);
+      background-size: 400% 400%;
+      animation: greadientMove 15s ease infinite;
+
+    }
+
+    @keyframes gradientMove {
+      0% {
+        background-position: 0% 50%;
+
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100%{
+        background-position: 0% 50%;
+      }  
+    }
+    .container {
+      width: 300px;
+      background: #C4E2F5;
+      border-radius: 18px;
+      padding: 30px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+    .status {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      background: #4647AE;
+      color: #AACCD6;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .logo {
+      display: block;
+      margin: auto;
+      width: 100px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin: 0;
+      font-size: 32px;
+      color: #112E81;
+    }
+    .subtitle {
+      text-align: center;
+      color: #112E81;
+      margin-top: 10px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: #4BB8FA;
+      border-radius: 15px;
+      padding: 18px;
+      margin-bottom: 15px;
+      transition transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover{
+      transform: translateY(-6px);
+      box-shadow: 0 10px 20px  rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+    }
+    .label {
+      color: #112E81;
+      font-size: 15px;
+      margin-bottom: 5px;
+    }
+    .value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+    .footer {
+      text-align: center;
+      color: #4647AE;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+    .big-value {
+      font: size 56px;
+      font-weight: bold;
+      color: #ffffff;
+      text-align: center;
+      margin: 20px 0;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+
+
+    }
+    .sub-value {
+      font-size: 18px;
+      text-align: center;
+      color: #112E81;
+      font-weight: bold;
+
+
+    }
+    .progress.bg {
+      background: #ffffff;
+      height: 100%;
+      width: 0%;
+      transition: width 0.5s ease-in-out;
+
+    }
+    .back-btn{
+      display:block;
+      background: #112E81;
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: bold;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin-top: 25px;
+
+    }
+    .back-btn:hover{
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+    .health-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 10px;
+      color:#112E81;
+      margin-top: 25px;
+      border-top: 1px solid rgba(17, 46, 129, 0.5);
+      padding-top: 15px;
+      font-weight: bold;
+
+    }
+    .health-item{
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+    }
+    .health-val {
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .progress-track {
+      width: 100%;
+      height: 14px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      margin-top: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #10b981;
+      width: 0%;
+      border-radius: 10px;
+      transition: width 0.5s ease-in-out;
+    }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+
+    </head>
+    <body>
+        <div class="container">
+            <h1>MQ-3 Alcohol levels</h1>
+            <div class="subtitle">Live sensor data</div>
+
+            <div class="card" style="margin-top: 30px; margin-bottom: 30px;">
+            <div class="value" id="mq3" style="font-size: 40px; margin-bottom: 10px;">Warming Up...</div>
+            <div class="value" id="mq status" style="font-size: 18px; color: #112E81;">Current Reading</div>
+            </div>
+
+            <a href="/" style="text-decoration: none;">
+                <div class="back-btn"> Dashboard </div>
+            </a>
+        </div>
+        <script>
+            async function updatedMetric() {
+                try{
+                    const response = await fetch('/data');
+                    const data = await response.json();
+                    if(data.mqReady){
+                    document.getElementById('mq3').innerHTML = "ADC:" + data.mq;
+                    document.getElementById('mq3status').innerHTML = "Sensor OK";
+
+                    } else {
+
+                    document.getElementById('mq3').innerHTML = "Warming Up";
+                    document.getElementById('mq3status').innerHTML = data.Remaining + "s Remaining";                    
+                
+                 }
+                    
+
+                } catch (err) { console.error(err); }
+                
+            }
+            updatedMetric();
+            setInterval(updatedMetric, 1000);
+        </script>
+    </body>
+</html>

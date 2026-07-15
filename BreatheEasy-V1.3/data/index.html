@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>BreatheEasy Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  
+  <div class="container">
+    <img class="logo" src="https://i.ibb.co/352FNBKK/image.png" alt="Logo">
+    <h1>BreatheEasy</h1>
+    <div class="subtitle">ESP32 Data Dashboard</div>
+
+    <div class="status" id="status">
+      🟢 Service Nominal
+    </div>
+
+    <a href="/temperature" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">Temperature</div>
+        <div class="value" id="temperature">--</div>
+        <div class="progress-track">
+          <div id="temp-progress" class="progress-fill"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #112e81; font-weight: bold; opacity: 0.8;">
+          Max: <span id="temp-max" style="color: #ffffff;">--</span> | Min: <span id="temp-min" style="color: #ffffff;">--</span>
+        </div>
+      </div>
+    </a>
+    
+    <a href="/humidity" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">Humidity</div>
+        <div class="value" id="humidity">--</div>
+        <div class="progress-track">
+          <div id="hum-progress" class="progress-fill"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #112e81; font-weight: bold; opacity: 0.8;">
+          Max: <span id="hum-max" style="color: #ffffff;">--</span> | Min: <span id="hum-min" style="color: #ffffff;">--</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="/mq3" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">MQ-3 Alcohol Sensor</div>
+        <div class="progress-track">
+          <div id="mq3-progress" class="progress-fill"></div>
+        </div>
+        <div class="value" id="mq3">Warming Up...</div>
+        <div class="value" id="mqstatus">Starting...</div>
+
+      </div>
+    </a>
+
+    <div class="card">
+      <div class="label">Latest Event</div>
+      <div class="value" id="event">System Starting...</div>
+    </div>
+
+    <div class="health-panel">
+      <div class="health-item">
+        <span>📶 RSSI:</span>
+        <span class="health-val" id="rssi">--</span><span style="color: #112e81;">dBm</span>      
+      </div>
+      <div class="health-item">
+        <span>💾 RAM:</span>
+        <span class="health-val" id="heap">--</span><span style="color: #112e81;">KB</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Uptime: <span id="uptime">--</span></div>
+      <div>Updated: <span id="updated">--</span></div>
+    </div>
+    
+  </div>
+
+<script>
+    console.log("dashboard script loaded");
+    let alarmPlaying = false;
+    let audioContext = null;
+    let alarmInterval = null;
+    
+    let maxTemp = -999;
+    let minTemp = 999;
+    let maxHum = -999;
+    let minHum = 999;
+
+    function startAlarm(){
+      if(alarmPlaying) return;
+      alarmPlaying = true;
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      alarmInterval = setInterval(() => {
+        let oscillator = audioContext.createOscillator();
+        let gainNode = audioContext.createGain();
+
+        oscillator.type = "square";
+        oscillator.frequency.value = 600;
+        gainNode.gain.value = 0.1;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+        }, 200);
+      }, 500);
+    }
+
+    function stopAlarm(){
+      alarmPlaying = false;
+      if(alarmInterval){
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+      if(audioContext){
+        audioContext.close();
+        audioContext = null;
+      }
+    }
+
+    async function updateDashboard(){
+      try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        console.log("Updating dashboard...");
+
+        
+        if (data.temperature !== null) {
+          if(data.temperature > maxTemp){
+            maxTemp = data.temperature;
+            document.getElementById('temp-max').innerHTML = maxTemp + " °C";
+          } 
+          if(data.temperature < minTemp){
+            minTemp = data.temperature;
+            document.getElementById('temp-min').innerHTML = minTemp + " °C";
+          }
+        }
+        let tempPercent = ((data.temperature) / 50) * 100;
+        if (tempPercent > 100) tempPercent = 100;
+        if (tempPercent < 0) tempPercent = 0;
+
+        let tempBar = document.getElementById('temp-progress');
+        if (tempBar) {
+          tempBar.style.width = tempPercent + "%";
+          if (tempPercent < 15) {
+            tempBar.style.backgroundColor = "#00FF00"; // Green
+          } else if (tempPercent < 35) {
+            tempBar.style.backgroundColor = "#FFFF00"; // Yellow
+          } else {
+            tempBar.style.backgroundColor = "#FF0000"; // Red
+          }
+        }
+        
+        
+        if (data.humidity !== null) {
+          if(data.humidity > maxHum){
+            maxHum = data.humidity; 
+            document.getElementById('hum-max').innerHTML = maxHum + " %";
+          }
+          if(data.humidity < minHum){
+            minHum = data.humidity; // Fixed data.temperature mixup
+            document.getElementById('hum-min').innerHTML = minHum + " %"; // Fixed 'temp-min' target mismatch
+          }
+        }
+        let humPercent = data.humidity;
+        if (humPercent > 100) humPercent = 100;
+        if (humPercent < 0) humPercent = 0;
+
+        let humBar = document.getElementById('hum-progress');
+        if (humBar) {
+          humBar.style.width = humPercent + "%";
+          if (humPercent < 30) {
+            humBar.style.backgroundColor = "#00FF00"; // Green
+          } else if (humPercent < 70) {
+            humBar.style.backgroundColor = "#FFFF00"; // Yellow
+          } else {
+            humBar.style.backgroundColor = "#FF0000"; // Red
+          }
+        }
+
+        // Live reading displays
+        document.getElementById('temperature').innerHTML = data.temperature + " °C";
+        document.getElementById('humidity').innerHTML = data.humidity + " %";
+        document.getElementById('uptime').innerHTML = data.uptime;
+        document.getElementById('updated').innerHTML = data.time;
+        document.getElementById('event').innerHTML = data.event;
+
+        if(data.mqReady){
+          document.getElementById('mq3').innerHTML = "ADC: " + data.mq;
+          document.getElementById('mqstatus').innerHTML = "Sensor OK";
+
+          const  MQ3_LIMIT = 2200;
+          let mqPercent = (data.mq / MQ3_LIMIT) * 100;
+          if (mqPercent > 100) mqPercent = 100;
+
+          if (mqBar) {
+            mqBar.style.width = mqPercent + "%";
+            if (mqPercent < 30) {
+              mqBar.style.backgroundColor = "#00FF00"; // Green
+            } else if (mqPercent < 70) {
+              mqBar.style.backgroundColor = "#FFFF00"; // Yellow
+            } else {
+              mqBar.style.backgroundColor = "#FF0000"; // Red
+            }
+          }
+        } else {
+          document.getElementById('mq3').innerHTML = "Warming Up";
+          document.getElementById('mqstatus').innerHTML = data.remaining + "s Remaining";
+        }
+
+       
+        const rssiElem = document.getElementById('rssi');
+        if(rssiElem && data.rssi !== undefined){
+          rssiElem.innerHTML = data.rssi;
+          if (data.rssi > -60 ) {
+            rssiElem.style.color = "#00FF00";
+          } else if (data.rssi > -80) {
+            rssiElem.style.color = "#FFFF00";
+          } else {
+            rssiElem.style.color = "#FF0000";
+          }
+        }
+
+       
+        const heapElem = document.getElementById('heap');
+        if (heapElem && data.heap !== undefined){
+          heapElem.innerHTML = data.heap;
+        }
+
+        
+        const statusElem = document.getElementById("status");
+        if(data.alarm){
+          statusElem.innerHTML = "🚨 ALERT";
+          statusElem.style.background = "#FF0000";
+          statusElem.style.color = "#FFFFFF";
+          startAlarm();
+        } else {
+          statusElem.innerHTML = "🟢 Normal";
+          statusElem.style.background = "#00FF00";
+          statusElem.style.color = "#112E81";
+          stopAlarm();
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      }
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 1000);
+</script>
+</body>
+</html>
