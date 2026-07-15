@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>BreatheEasy DEMO</title>
+        <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+        <style>
+            .demo-wrapper{display: flex; gap: 40px; justify-content: center; padding: 40px; }
+            .control-panel {background: #112e81; padding: 25px; border-radius: 15px; color: white; width: 300px; height: fit-content;}
+            .control-group {margin-bottom: 20px; }
+            .control-group label {display: block; margin-bottom: 8px; font-weight: bold; }
+            input[type=range] {width: 100%; cursor: pointer;} 
+        </style>
+
+
+    </head>
+    <body>
+
+        <div class="demo-wrapper">
+            <aside class="control-panel">
+                <h2>Demo controls</h2>
+                
+                <div class="control-group">
+                    <label>Temperature</label>
+                    <input type="range" id="temp-slider" min="0" max="60" step="0.1" value="25">
+
+                </div>
+                <div class="control-group">
+                    <label>Humidity</label>
+                    <input type="range" id="hum-slider" min="0" max="100" step="1" value="50">
+
+                </div>
+                <div class="control-group">
+                    <label>MQ-3 sensor alcohol</label>
+                    <input type="range" id="mq-slider" min="0" max="2200" step="10" value="500">
+
+                </div>
+                <div class="control-group">
+                    <label>Trigger Alarm</label>
+                    <input type="checkbox" id="alarm-toggle">
+                </div>
+
+            </aside>
+
+            <main class="container">
+                <img class="logo" src="https://i.ibb.co/352FNBKK/image.png" alt="Logo">
+                <h1>BreatheEasy</h1>
+                <div class="subtitle">Simulation Mode</div>
+                
+                <div class="status" id="status"> Service Nominal</div>
+
+                <div class="card">
+                    <div class="label">Temperature</div>
+                    <div class="value" id="temperature">--</div>
+                    <div class="progress-track"><div id="temp-progress" class="progress-fill"></div></div>
+                </div>
+                <div class="card">
+                    <div class="label">Humidity</div>
+                    <div class="value" id="humidity">--</div>
+                    <div class="progress-track"><div id="hum-progress" class="progress-fill"></div></div>
+                </div>
+                <div class="card">
+                    <div class="label">MQ-3 Alcohol level</div>
+                    <div class="progress-track"><div id="mq3-progress" class="progress-fill"></div></div>
+                    <div class="value" id="mq3">--</div>
+                </div>
+                <div class="card">
+                    <div class="label">Latest Event</div>
+                    <div class="value" id="event">Simulation Active</div>                   
+                </div>
+            </main>
+        </div>
+        <script>
+            let alarmPlaying = false;
+            let audioContext = null;
+            let alarmInterval = null;
+
+            const tempSlider = document.getElementById('temp-slider');
+            const humSlider = document.getElementById('hum-slider');
+            const mqSlider = document.getElementById('mq-slider');
+            const alarmToggle = document.getElementById('alarm-toggle');
+
+            const tempVal = document.getElementById('temperature');
+            const humVal = document.getElementById('humidity');
+            const mqVal = document.getElementById('mq3');
+
+            const tempBar = document.getElementById('temp-progress');
+            const humBar = document.getElementById('hum-progress');
+            const mqBar = document.getElementById('mq3-progress');
+            const statusElem = document.getElementById('status');
+            const eventElem = document.getElementById('event')
+
+            function startAlarm(){
+                if(alarmPlaying) return;
+                alarmPlaying = true;
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+                alarmInterval = setInterval(() => {
+                let oscillator = audioContext.createOscillator();
+                let gainNode = audioContext.createGain();
+
+                oscillator.type = "square";
+                oscillator.frequency.value = 600;
+                gainNode.gain.value = 0.1;
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start();
+                setTimeout(() => {
+                    oscillator.stop();
+                }, 200);
+            }, 500);
+            }
+
+
+
+            function stopAlarm(){
+            alarmPlaying = false;
+            if(alarmInterval){
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+            if(audioContext){
+                audioContext.close();
+                audioContext = null;
+            }
+            }
+
+            function updateDashboard() {
+                const temp = parseFloat(tempSlider.value);
+                const hum = parseInt(humSlider.value);
+                const mq = parseInt(mqSlider.value);
+                let isAlarmtriggered = alarmToggle.checked
+                
+                if (tempVal) tempVal.innerHTML = temp.toFixed(1) + "C"
+                if(tempBar) {
+                    let tempPercent = (temp / 50.0) * 100;
+                    if (tempPercent > 100) tempPercent = 100;
+                    if (tempPercent < 0 ) tempPercent = 0;
+                    tempBar.style.width = tempPercent + "%"
+                
+
+                if (temp < 15) tempBar.style.backgroundColor = "#3b82f6";
+                else if (temp < 35) tempBar.style.backgroundColor = "#10b981";
+                else {
+                    
+                tempBar.style.backgroundColor = "#ef4444";
+                isAlarmtriggered = true;
+
+                } 
+
+                }
+
+                if (humVal) humVal.innerHTML = hum + "%";
+                if(humBar) {
+                    let humPercent = hum;
+                    humBar.style.width = humPercent + "%";
+                
+
+                if (humPercent < 30) humBar.style.backgroundColor = "#f97316";
+                else if (humPercent < 70) humBar.style.backgroundColor = "#10b981";
+                else {
+                    humBar.style.backgroundColor = "#3b82f6";
+                    isAlarmtriggered = true;
+                }
+                
+                }
+                if (mqVal) mqVal.innerHTML = " ADC" + mq;
+                if(mqBar) {
+                    const MQ3_LIMIT = 2200;
+                    let mqPercent =(mq /MQ3_LIMIT) *100;
+                    if (mqPercent >100) mqPercent = 100;
+                    mqBar.style.width = mqPercent + "%";
+
+                
+                
+
+                if (mqPercent < 50) mqBar.style.backgroundColor = "#10b981";
+                else if (mq < 70) mqBar.style.backgroundColor = "#f59e0b";
+                else {
+                    mqBar.style.backgroundColor = "#ef4444";
+                    isAlarmtriggered = true;
+                    }
+                
+                }
+            
+                if(isAlarmtriggered) {
+                    if(statusElem) {
+                        statusElem.innerHTML = "ALARM!!";
+                        statusElem.style.background = "#ef4444";
+                        statusElem.style.color = "#FFFFFF";
+
+                    }
+                    if (eventElem){
+                        if (mq >1870) {
+                            eventElem.innerHTML = "Critical Alcohol in air please remove pollution!";
+
+                        } else {
+                            eventElem.innerHTML = "Manual Alarm activation";
+
+                        }
+                    }
+                    startAlarm();
+                } else {
+                    if (statusElem){
+                        statusElem.innerHTML= "Service Normal";
+                        statusElem.style.background = "#10b981";
+                        statusElem.style.color = "#FFFFFF";
+
+                    }
+                    if (eventElem){
+                        eventElem.innerHTML = "Simulation running smooth";
+                    }
+                    stopAlarm();
+                }
+            }
+
+            tempSlider.addEventListener('input', updateDashboard);
+            humSlider.addEventListener('input', updateDashboard);
+            mqSlider.addEventListener('input', updateDashboard);
+            alarmToggle.addEventListener('change', updateDashboard);
+
+            updateDashboard();
+            
+
+            
+
+
+        </script>
+    </body>
+</html>
