@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>🧘‍♂️BreatheEasy Dashboard🧘‍♀️</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  
+  <div class="container">
+    <img class="logo" src="https://i.ibb.co/gb5vXJ50/Gemini-Generated-Image-cfnvjgcfnvjgcfnv-removebg-preview.png" alt="Logo">
+    <h1>BreatheEasy</h1>
+    <div class="subtitle">📈ESP32 Data Dashboard📉</div>
+
+    <div class="status" id="status">
+      🟢 Service Nominal
+    </div>
+
+    <a href="/temperature" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">Temperature🌡️</div>
+        <div class="value" id="temperature">--</div>
+        <div class="progress-track">
+          <div id="temp-progress" class="progress-fill"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #112e81; font-weight: bold; opacity: 0.8;">
+          Max: <span id="temp-max" style="color: #ffffff;">--</span> | Min: <span id="temp-min" style="color: #ffffff;">--</span>
+        </div>
+      </div>
+    </a>
+    
+    <a href="/humidity" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">Humidity💦</div>
+        <div class="value" id="humidity">--</div>
+        <div class="progress-track">
+          <div id="hum-progress" class="progress-fill"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #112e81; font-weight: bold; opacity: 0.8;">
+          Max: <span id="hum-max" style="color: #ffffff;">--</span> | Min: <span id="hum-min" style="color: #ffffff;">--</span>
+        </div>
+      </div>
+    </a>
+    <a href="/pressure" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">Pressure💪</div>
+        <div class="value" id="pressure">--</div>
+        <div class="progress-track">
+          <div id="press-progress" class="progress-fill"></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #112e81; font-weight: bold; opacity: 0.8;">
+          Max: <span id="press-max" style="color: #ffffff;">--</span> | Min: <span id="press-min" style="color: #ffffff;">--</span>
+        </div>
+      </div>
+    </a>
+
+    <a href="/mq135" style="text-decoration: none;">
+      <div class="card">
+        <div class="label">MQ-135 Hazardous gasses Sensor 💨</div>
+        <div class="progress-track">
+          <div id="mq135-progress" class="progress-fill"></div>
+        </div>
+        <div class="value" id="mq135">Warming Up...</div>
+        <div class="value" id="mqstatus">Starting...</div>
+      </div>
+    </a>
+
+    <div class="card">
+      <div class="label">Latest Event❗</div>
+      <div class="value" id="event">System Starting...</div>
+    </div>
+
+    <div class="health-panel">
+      <div class="health-item">
+        <span>📶 RSSI:</span>
+        <span class="health-val" id="rssi">--</span><span style="color: #112e81;">dBm</span>      
+      </div>
+      <div class="health-item">
+        <span>💾 RAM:</span>
+        <span class="health-val" id="heap">--</span><span style="color: #112e81;">KB</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Uptime: <span id="uptime">--</span></div>
+      <div>Updated: <span id="updated">--</span></div>
+    </div>
+
+    <button id="theme-toggle" style="margin-bottom: 20px; padding: 8px 16px; cursor: pointer;">
+      🌙 Toggle Dark mode 
+    </button>
+    
+  </div>
+
+<script>
+    console.log("dashboard script loaded");
+    let alarmPlaying = false;
+    let audioContext = null;
+    let alarmInterval = null;
+    
+    let maxTemp = -999;
+    let minTemp = 999;
+    let maxHum = -999;
+    let minHum = 999;
+    let maxPress = -999;
+    let minPress = 999;
+
+    const tempVal = document.getElementById('temperature');
+    const humVal = document.getElementById('humidity');
+    const pressVal = document.getElementById('pressure');
+    const tempMaxElem = document.getElementById('temp-max');
+    const tempMinElem = document.getElementById('temp-min');
+    const humMaxElem = document.getElementById('hum-max');
+    const humMinElem = document.getElementById('hum-min');
+    const pressMaxElem = document.getElementById('press-max');
+    const pressMinElem = document.getElementById('press-min');
+    const tempBar = document.getElementById('temp-progress');
+    const humBar = document.getElementById('hum-progress');
+    const mqVal = document.getElementById('mq135');
+    const mqStatusElem = document.getElementById('mqstatus');
+    const mqBar = document.getElementById('mq135-progress');
+    const uptimeElem = document.getElementById('uptime');
+    const updatedElem = document.getElementById('updated');
+    const eventElem = document.getElementById('event');
+    const rssiElem = document.getElementById('rssi');
+    const heapElem = document.getElementById('heap');
+    const statusElem = document.getElementById('status');
+
+
+    const toggleBtn = document.getElementById('theme-toggle');
+    const currentTheme = localStorage.getItem('theme') || 'light';
+
+    document.documentElement.setAttribute('data-theme', currentTheme);
+
+    toggleBtn.addEventListener('click', () => {
+      
+      let theme = document.documentElement.getAttribute('data-theme');
+      let newTheme = (theme === 'light') ? 'dark' : 'light';
+      
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    function startAlarm(){
+      if(alarmPlaying) return;
+      alarmPlaying = true;
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+      alarmInterval = setInterval(() => {
+        let oscillator = audioContext.createOscillator();
+        let gainNode = audioContext.createGain();
+
+        oscillator.type = "square";
+        oscillator.frequency.value = 600;
+        gainNode.gain.value = 0.1;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start();
+        setTimeout(() => {
+          oscillator.stop();
+        }, 200);
+      }, 500);
+    }
+
+    function stopAlarm(){
+      alarmPlaying = false;
+      if(alarmInterval){
+        clearInterval(alarmInterval);
+        alarmInterval = null;
+      }
+      if(audioContext){
+        audioContext.close();
+        audioContext = null;
+      }
+    }
+
+    async function updateDashboard(){
+      try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        console.log("Updating dashboard...", data);
+
+        // --- TEMPERATURE ---
+        if (data.temperature !== null && data.temperature !== undefined) {
+          if(data.temperature > maxTemp){
+            maxTemp = data.temperature;
+            if (tempMaxElem) tempMaxElem.innerHTML = maxTemp + " °C";
+          } 
+          if(data.temperature < minTemp){
+            minTemp = data.temperature;
+            if (tempMinElem) tempMinElem.innerHTML = minTemp + " °C";
+          }
+          if (tempVal) tempVal.innerHTML = data.temperature + " °C";
+
+          let tempPercent = (data.temperature / 50) * 100;
+          if (tempPercent > 100) tempPercent = 100;
+          if (tempPercent < 0) tempPercent = 0;
+
+          if (tempBar) {
+            tempBar.style.width = tempPercent + "%";
+            if (tempPercent < 15) {
+              tempBar.style.backgroundColor = "#00FF00"; 
+            } else if (tempPercent < 35) {
+              tempBar.style.backgroundColor = "#FFFF00"; 
+            } else {
+              tempBar.style.backgroundColor = "#FF0000"; 
+            }
+          }
+        }
+        
+        // --- HUMIDITY ---
+        if (data.humidity !== null && data.humidity !== undefined) {
+          if(data.humidity > maxHum){
+            maxHum = data.humidity; 
+            if (humMaxElem) humMaxElem.innerHTML = maxHum + " %";
+          }
+          if(data.humidity < minHum){
+            minHum = data.humidity; 
+            if (humMinElem) humMinElem.innerHTML = minHum + " %"; 
+          }
+          if (humVal) humVal.innerHTML = data.humidity + " %";
+
+          let humPercent = data.humidity;
+          if (humPercent > 100) humPercent = 100;
+          if (humPercent < 0) humPercent = 0;
+
+          if (humBar) {
+            humBar.style.width = humPercent + "%";
+            if (humPercent < 30) {
+              humBar.style.backgroundColor = "#00FF00"; 
+            } else if (humPercent < 70) {
+              humBar.style.backgroundColor = "#FFFF00"; 
+            } else {
+              humBar.style.backgroundColor = "#FF0000"; 
+            }
+          }
+        }
+
+        if (uptimeElem) uptimeElem.innerHTML = data.uptime || "--";
+        if (updatedElem) updatedElem.innerHTML = data.time || "--";
+        if (eventElem) eventElem.innerHTML = data.event || "--";
+
+        
+        if (data.mqReady){
+          if (mqVal) mqVal.innerHTML = "ADC: " + data.mq;
+          if (mqStatusElem) mqStatusElem.innerHTML = "Sensor OK";
+
+          const MQ135_LIMIT = 2200;
+          let mqPercent = (data.mq / MQ135_LIMIT) * 100;
+          if (mqPercent > 100) mqPercent = 100;
+
+          if (mqBar) {
+            mqBar.style.width = mqPercent + "%";
+            if (mqPercent < 30) {
+              mqBar.style.backgroundColor = "#00FF00"; 
+            } else if (mqPercent < 70) {
+              mqBar.style.backgroundColor = "#FFFF00"; 
+            } else {
+              mqBar.style.backgroundColor = "#FF0000"; 
+            }
+          }
+        } else {
+          if (mqVal) mqVal.innerHTML = "Warming Up";
+          if (mqStatusElem) mqStatusElem.innerHTML = (data.remaining !== undefined ? data.remaining : "--") + "s Remaining";
+          if (mqBar) mqBar.style.width = "0%";
+        }
+
+        if(data.pressure !== null && data.pressure !== undefined) {
+          if(data.pressure > maxPress){
+            maxPress = data.pressure;
+            if (pressMaxElem) pressMaxElem.innerHTML = maxPress + " hPa";
+          } 
+          if(data.pressure < minPress){
+            minPress = data.pressure;
+            if (pressMinElem) pressMinElem.innerHTML = minPress + " hPa";
+          }
+          if (pressVal) pressVal.innerHTML = data.pressure + " hPa";
+
+          let pressPercent = (data.pressure / 1100) * 100; 
+          if (pressPercent > 100) pressPercent = 100;
+          if (pressPercent < 0) pressPercent = 0;
+
+          const pressBar = document.getElementById('press-progress');
+          if (pressBar) {
+            pressBar.style.width = pressPercent + "%";
+            if (pressPercent < 30) {
+              pressBar.style.backgroundColor = "#00FF00"; 
+            } else if (pressPercent < 70) {
+              pressBar.style.backgroundColor = "#FFFF00"; 
+            } else {
+              pressBar.style.backgroundColor = "#FF0000"; 
+            }
+          }
+        }
+
+        
+        if(rssiElem && data.rssi !== undefined && data.rssi !== null){
+          rssiElem.innerHTML = data.rssi;
+          if (data.rssi > -60 ) {
+            rssiElem.style.color = "#00FF00";
+          } else if (data.rssi > -80) {
+            rssiElem.style.color = "#FFFF00";
+          } else {
+            rssiElem.style.color = "#FF0000";
+          }
+        }
+
+       
+        if (heapElem && data.heap !== undefined && data.heap !== null){
+          heapElem.innerHTML = data.heap;
+        }
+
+        if (statusElem) {
+          if(data.alarm){
+            statusElem.innerHTML = "🚨 ALERT";
+            statusElem.style.background = "#FF0000";
+            statusElem.style.color = "#FFFFFF";
+            startAlarm();
+          } else {
+            statusElem.innerHTML = "🟢 Normal";
+            statusElem.style.background = "#00FF00";
+            statusElem.style.color = "#112E81";
+            stopAlarm();
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      }
+    }
+
+    updateDashboard();
+    setInterval(updateDashboard, 1000);
+</script>
+</body>
+</html>
